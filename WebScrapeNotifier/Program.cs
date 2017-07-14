@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using EmailClient;
 using System.Net;
 using System.IO;
 using System.Configuration;
@@ -17,7 +16,7 @@ namespace WebScrapeNotifier
         {
             while (true)
             {
-                var html = GetHTML();
+                var html = GetResourceFromURL();
                 if (html != null && KeyNotFound(html))
                     SendEmail();
                 Thread.Sleep(600000);
@@ -39,9 +38,14 @@ namespace WebScrapeNotifier
             return found == -1;
         }
 
-        static string GetHTML()
+        /// <summary>
+        /// Returns text that is retrieved from the URL in the .config file
+        /// </summary>
+        /// <returns>null if HttpStatusCode is not OK</returns>
+        static string GetResourceFromURL()
         {
             string urlAddress = ConfigurationManager.AppSettings.Get("ScrapThisUrl");
+            string data = null;
             HttpWebRequest request = (HttpWebRequest)WebRequest.Create(urlAddress);
             HttpWebResponse response = (HttpWebResponse)request.GetResponse();
 
@@ -59,14 +63,12 @@ namespace WebScrapeNotifier
                     readStream = new StreamReader(receiveStream, Encoding.GetEncoding(response.CharacterSet));
                 }
 
-                string data = readStream.ReadToEnd();
+                data = readStream.ReadToEnd();
 
                 response.Close();
                 readStream.Close();
-
-                return data;
             }
-            return null;
+            return data;
         }
     }
 }
